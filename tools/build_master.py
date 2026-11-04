@@ -120,6 +120,10 @@ missing_b = [n for n in range(1, max(nums_b) + 1) if n not in nums_b]
 if missing_b:
     gaps.append(("Room number missing", f"Room set B skips number(s) {missing_b}.", "Check whether a room was left out."))
 
+# Two hotels (confirmed by Ayush 2026-11-04): the first room block in the
+# sheet is at Nakshatra, the second block (sets B and C) at The Ceremony.
+HOTELS = {"A": "Hotel Nakshatra Regency", "B": "Hotel The Ceremony", "C": "Hotel The Ceremony"}
+
 PLACEHOLDER = {"son", "daughter", "??"}
 room_rows = []
 for rm in rooms:
@@ -149,7 +153,7 @@ for rm in rooms:
         occupants.append(n)
     if not occupants:
         gaps.append(("Empty room", f"Room {rm['code']} has a number but nobody in it.", "Fill it or delete it."))
-    room_rows.append(dict(code=rm["code"], set=rm["set"], people=occupants))
+    room_rows.append(dict(code=rm["code"], set=rm["set"], hotel=HOTELS[rm["set"]], people=occupants))
 
 for c, variants in canon_used.items():
     gaps.insert(0, ("Spelling picked", f"Used '{c}' for: {', '.join(sorted(variants))}.",
@@ -159,8 +163,8 @@ no_room = [g["name"] for g in guests if not g["room"]]
 if no_room:
     gaps.append(("No room", f"{len(no_room)} people have no room: {', '.join(no_room)}.",
                  "Assign a room, or mark 'Day visit / own stay' in their Notes."))
-gaps.append(("Hotel unknown", "None of the three room sets (A, B, C) says which hotel it belongs to.",
-             "Fill the Hotel column in the Rooms tab."))
+gaps.append(("Hotel details", "Hotel names and addresses were taken from booking websites, not from the bookings.",
+             "Check them against the booking confirmations, and add real room numbers and check-in times."))
 gaps.append(("Travel details", "No arrival dates, train/flight numbers, PNRs or phone numbers are in the sheet yet.",
              "Collect them into the Guests tab. Pickups are planned from this."))
 
@@ -184,6 +188,7 @@ JOBS = [
     ("Stay", "Welcome kit in each room: water, snacks, printed schedule", "24 Nov", D(2026, 11, 23), ""),
     ("Venues", "Point person at Nakshatra Banquet Hall", "25-26 Nov", D(2026, 11, 15), ""),
     ("Venues", "Point person at Saxena Dream Lawns", "26 Nov", D(2026, 11, 15), ""),
+    ("Venues", "Shuttle for guests staying at Hotel The Ceremony to and from the venues", "25-26 Nov", D(2026, 11, 18), ""),
     ("Venues", "Move guests from Nakshatra to Saxena Lawns", "26 Nov, 3-4 PM", D(2026, 11, 20), ""),
     ("Food", "Dinner on 25 Nov", "25 Nov", D(2026, 11, 15), ""),
     ("Food", "Breakfast and lunch on 26 Nov", "26 Nov", D(2026, 11, 15), ""),
@@ -215,7 +220,11 @@ VENDORS = [
      "Gandhari, Barave Road, opp. Mahada Colony, Godrej Hill, Khadakpada, Kalyan 421301"),
     ("Venue", "Vasavi Mahal", "6 Dec",
      "4 Vanivilas Road, 3rd Floor (above Vasavi Convention Hall), VV Puram, Basavanagudi, Bengaluru 560004"),
-    ("Hotel", "", "24-27 Nov", ""), ("Caterer", "", "25-26 Nov", ""), ("Flowers & decor", "", "25-26 Nov", ""),
+    ("Hotel", "Hotel Nakshatra Regency", "24-27 Nov",
+     "Gate No. 4, Kalyan Sports Club, Birla College Road, near Adharwadi Chowk, Kalyan West 421301"),
+    ("Hotel", "Hotel The Ceremony", "24-27 Nov",
+     "1st floor, above Yamaha showroom, Kalyan-Bhiwandi Road, near Durgadi Bridge, Kalyan West 421311"),
+    ("Caterer", "", "25-26 Nov", ""), ("Flowers & decor", "", "25-26 Nov", ""),
     ("Pandit", "", "25-26 Nov", ""), ("Mehendi artist", "", "25 Nov", ""), ("Sound / DJ", "", "25 Nov", ""),
     ("Makeup artists", "", "25-26 Nov", ""), ("Photographer", "", "25-26 Nov", ""),
     ("Videographer", "", "25-26 Nov", ""), ("Cars / taxis", "", "24-27 Nov", ""),
@@ -321,7 +330,7 @@ dropdown(gs, "D", ["Train", "Flight", "Car", "Bus", "Local"])
 dropdown(gs, "O", ["Kalyan station", "Mumbai airport", "Thane station", "CSMT", "LTT", "Dadar", "Own transport"])
 
 sheet("Rooms", ["Room", "Hotel", "Room number at hotel", "People", "Count", "Check-in", "Check-out", "Notes"],
-      [[r["code"], "", "", ", ".join(r["people"]), len(r["people"]), "", "", ""] for r in room_rows],
+      [[r["code"], r["hotel"], "", ", ".join(r["people"]), len(r["people"]), "", "", ""] for r in room_rows],
       [8, 22, 12, 60, 7, 12, 12, 30])
 
 js = sheet("Jobs", ["ID", "Area", "Job", "When", "Owner", "Helper", "Suggested deadline", "Status", "Notes"],
