@@ -1,0 +1,4 @@
+*.xlsx
+~$*
+test-data/
+__pycache__/
