@@ -5,73 +5,141 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <title>Wedding Control Room</title>
+<meta name="theme-color" content="#0B4F4A">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700&family=Yatra+One&display=swap">
 <style>
+  /* Colours taken from a Paithani saree: peacock body, zari gold, magenta edge.
+     Kumkum red marks what needs attention, haldi yellow marks what is on now. */
   :root {
-    --bg: #fbf5ee; --card: #ffffff; --line: #ead9cc; --ink: #3d2a2a; --muted: #7a6464;
-    --accent: #5a1f2e; --accent-ink: #ffffff; --gold: #a87b3d;
-    --warn-bg: #fdecea; --warn: #b3261e; --ok-bg: #e6f2ee; --ok: #1f6b54; --soft: #f4e9e1;
+    --paper: #fbfbf8; --raised: #ffffff; --ink: #17211f; --muted: #55625e; --line: #dce3e0; --soft: #edf2f0;
+    --peacock: #0b4f4a; --on-peacock: #ffffff; --gold-on-peacock: #eac46c;
+    --accent: #0b4f4a; --on-accent: #ffffff;
+    --gold: #c9972b; --magenta: #9e1f5c;
+    --red: #b0102e; --red-bg: #fbe8ec; --ok: #1c6b3a; --ok-bg: #e4f1e8;
+    --haldi: #f2b705; --haldi-bg: #fff5d1;
+    color-scheme: light;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --bg: #1c1416; --card: #2a1f22; --line: #3e2f33; --ink: #f2e6e0; --muted: #b9a5a5;
-      --accent: #e3a3b4; --accent-ink: #2a1016; --gold: #d8b07a;
-      --warn-bg: #3d1f1f; --warn: #ffb4ab; --ok-bg: #1d3029; --ok: #8fd5b8; --soft: #33262a;
+      --paper: #0d1917; --raised: #13221f; --ink: #e6eeeb; --muted: #9aada7; --line: #22332f; --soft: #1a2b28;
+      --peacock: #0a3f3b; --accent: #62c6b7; --on-accent: #08201d;
+      --gold: #d4a94a; --magenta: #c24a82;
+      --red: #ff8fa0; --red-bg: #3a1720; --ok: #86d6a2; --ok-bg: #14301f;
+      --haldi-bg: #2c2610;
+      color-scheme: dark;
     }
   }
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
   body {
-    margin: 0; background: var(--bg); color: var(--ink);
-    font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    padding-bottom: calc(72px + env(safe-area-inset-bottom));
+    margin: 0; background: var(--paper); color: var(--ink);
+    font: 17px/1.5 "Mukta", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    padding-bottom: calc(76px + env(safe-area-inset-bottom));
   }
-  header { padding: 16px 16px 8px; }
-  header h1 { margin: 0; font-size: 1.25rem; color: var(--accent); }
-  header p { margin: 2px 0 0; color: var(--muted); font-size: .9rem; }
-  main { padding: 0 16px; max-width: 640px; margin: 0 auto; }
-  h2 { font-size: 1.05rem; margin: 22px 0 8px; }
-  h3 { font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; color: var(--gold); margin: 18px 0 6px; }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin: 0 0 8px; }
-  .card .t { font-weight: 600; }
-  .card .s { color: var(--muted); font-size: .9rem; }
-  .row { display: flex; gap: 8px; align-items: flex-start; justify-content: space-between; }
+  :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+  header { background: var(--peacock); color: var(--on-peacock); padding: calc(20px + env(safe-area-inset-top)) 16px 14px; }
+  header > * { max-width: 640px; margin-left: auto; margin-right: auto; }
+  header h1 { margin: 0; font: 400 2rem/1.15 "Yatra One", "Mukta", serif; }
+  #count { margin-top: 6px; margin-bottom: 0; color: var(--gold-on-peacock); font-weight: 600; }
+  #count:empty { display: none; }
+  #sub { margin-top: 2px; margin-bottom: 0; color: rgba(255, 255, 255, .82); font-size: .95rem; }
+  /* the woven border: gold thread, a row of temple triangles, magenta edge */
+  .zari {
+    height: 16px;
+    background:
+      linear-gradient(var(--gold), var(--gold)) top / 100% 2px no-repeat,
+      linear-gradient(var(--magenta), var(--magenta)) bottom / 100% 4px no-repeat,
+      conic-gradient(from 135deg at 50% 0, var(--gold) 90deg, transparent 0) 0 3px / 16px 8px repeat-x,
+      var(--peacock);
+  }
+
+  main { padding: 4px 16px 0; max-width: 640px; margin: 0 auto; }
+  h2 { font-size: 1.1rem; font-weight: 700; margin: 26px 0 6px; }
+  h3 { font: 400 1.15rem/1.3 "Yatra One", "Mukta", serif; color: var(--accent); margin: 22px 0 4px; }
+  .h-n { font: 400 .9rem "Mukta", sans-serif; color: var(--muted); margin-left: 6px; }
+  p.s { margin: 4px 0; }
+  .s { color: var(--muted); font-size: .92rem; }
+  .warn-text { color: var(--red); font-weight: 600; }
+  .empty { color: var(--muted); padding: 10px 0; }
+
+  /* lists are plain rows, not boxes */
+  .card { padding: 14px 0; border-bottom: 1px solid var(--line); }
+  .t { font-weight: 600; line-height: 1.35; }
+  .row { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; }
   .row > div:not(.time) { min-width: 0; flex: 1; }
-  .time { flex: none; width: 4.7em; white-space: nowrap; font-variant-numeric: tabular-nums; font-weight: 600; font-size: .9rem; padding-top: 1px; color: var(--accent); }
-  .pill { display: inline-block; font-size: .78rem; padding: 2px 8px; border-radius: 99px; background: var(--soft); white-space: nowrap; }
-  .pill.warn { background: var(--warn-bg); color: var(--warn); }
+  .time { flex: none; width: 4.8em; white-space: nowrap; font-variant-numeric: tabular-nums; font-weight: 700; font-size: .95rem; line-height: 1.4; color: var(--accent); }
+  .time small { display: block; font-weight: 400; font-size: .82rem; color: var(--muted); white-space: normal; }
+  .pill { display: inline-block; font-size: .8rem; font-weight: 600; padding: 2px 8px; border-radius: 6px; background: var(--soft); color: var(--ink); white-space: nowrap; }
+  .pill.warn { background: var(--red-bg); color: var(--red); }
   .pill.ok { background: var(--ok-bg); color: var(--ok); }
-  .warn-text { color: var(--warn); font-weight: 600; }
-  .actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+
+  /* the schedule is a sequence, so it gets a rail */
+  .ev { display: grid; grid-template-columns: 4.8em minmax(0, 1fr); column-gap: 12px; }
+  .ev .time { width: auto; }
+  .ev .body { position: relative; border-left: 2px solid var(--gold); padding: 0 0 22px 18px; }
+  .ev .body::before {
+    content: ""; position: absolute; left: -7px; top: 5px; width: 12px; height: 12px; border-radius: 50%;
+    background: var(--paper); border: 2px solid var(--gold);
+  }
+  .ev.live .body::before { background: var(--haldi); border-color: var(--haldi); box-shadow: 0 0 0 4px var(--haldi-bg); }
+  .ev .actions { margin-top: 8px; }
+
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
   .btn {
-    display: inline-flex; align-items: center; gap: 4px; min-height: 36px; padding: 6px 12px;
-    border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--ink);
-    font: inherit; font-size: .9rem; text-decoration: none; cursor: pointer;
+    display: inline-flex; align-items: center; min-height: 44px; padding: 8px 14px;
+    border-radius: 10px; border: 1px solid var(--line); background: var(--raised); color: var(--ink);
+    font: inherit; font-size: .92rem; font-weight: 600; text-decoration: none; cursor: pointer;
   }
-  .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
-  .chips { display: flex; gap: 6px; overflow-x: auto; padding: 2px 0 8px; scrollbar-width: none; }
-  .chip { flex: none; border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 99px; padding: 6px 12px; font: inherit; font-size: .88rem; cursor: pointer; }
-  .chip[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .btn.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+  .chips { display: flex; gap: 8px; overflow-x: auto; padding: 14px 0 8px; scrollbar-width: none; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip {
+    flex: none; min-height: 40px; border: 1px solid var(--line); background: var(--raised); color: var(--ink);
+    border-radius: 99px; padding: 6px 14px; font: inherit; font-size: .9rem; cursor: pointer;
+  }
+  .chip[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); font-weight: 600; }
   input[type=search], select, input[type=url] {
-    width: 100%; font: inherit; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line);
-    background: var(--card); color: var(--ink); margin: 4px 0 10px;
+    width: 100%; min-height: 46px; font: inherit; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--raised); color: var(--ink); margin: 4px 0 10px;
   }
-  .stat { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-  .stat button { text-align: left; font: inherit; color: inherit; cursor: pointer; }
-  .stat .n { font-size: 1.6rem; font-weight: 700; line-height: 1.1; }
-  .stat .warn .n { color: var(--warn); }
-  .stat .good .n { color: var(--ok); }
-  .empty { color: var(--muted); font-style: italic; padding: 8px 0; }
+  label.s { display: block; margin-top: 14px; }
+
+  /* needs-attention list */
+  .attn { border-top: 1px solid var(--line); }
+  .att {
+    display: flex; align-items: center; gap: 14px; width: 100%; min-height: 52px; padding: 10px 2px;
+    border: 0; border-bottom: 1px solid var(--line); background: none; color: inherit; font: inherit; text-align: left;
+  }
+  button.att { cursor: pointer; }
+  button.att::after {
+    content: ""; flex: none; width: 8px; height: 8px; margin-right: 8px;
+    border-top: 2px solid var(--muted); border-right: 2px solid var(--muted); transform: rotate(45deg);
+  }
+  .att .n { flex: none; min-width: 2.8em; font-weight: 700; font-size: 1.2rem; font-variant-numeric: tabular-nums; }
+  .att .l { flex: 1; }
+  .att.bad .n { color: var(--red); }
+  .att.good .n { color: var(--ok); }
+
   nav {
     position: fixed; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(5, 1fr);
-    background: var(--card); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom);
+    background: var(--raised); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom);
   }
   nav[hidden] { display: none; }
-  nav button { font: inherit; font-size: .78rem; background: none; border: 0; color: var(--muted); padding: 10px 2px 12px; cursor: pointer; }
-  nav button span { display: block; font-size: 1.15rem; line-height: 1.2; }
+  nav button {
+    position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 58px;
+    font: inherit; font-size: .78rem; background: none; border: 0; color: var(--muted); padding: 9px 2px; cursor: pointer;
+  }
+  nav svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
   nav button[aria-current="page"] { color: var(--accent); font-weight: 700; }
-  .foot { color: var(--muted); font-size: .8rem; text-align: center; margin: 24px 0 8px; }
-  .foot button { font: inherit; color: var(--accent); background: none; border: 0; text-decoration: underline; cursor: pointer; }
-  .now { border-left: 4px solid var(--accent); }
+  nav button[aria-current="page"]::before {
+    content: ""; position: absolute; top: -1px; left: 30%; right: 30%; height: 3px; border-radius: 0 0 3px 3px; background: var(--gold);
+  }
+  .foot { color: var(--muted); font-size: .85rem; text-align: center; margin: 28px 0 8px; }
+  .foot button { font: inherit; font-weight: 600; color: var(--accent); background: none; border: 0; text-decoration: underline; cursor: pointer; padding: 8px; }
+  .setup { padding: 16px; margin-top: 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--raised); }
   .setup p { margin: 0 0 10px; }
 </style>
 </head>
@@ -79,14 +147,16 @@
 <header>
   <h1>Akanksha &amp; Rishabh</h1>
   <p id="sub">Wedding control room</p>
+  <p id="count"></p>
 </header>
+<div class="zari" aria-hidden="true"></div>
 <main id="view"></main>
 <nav id="nav" hidden>
-  <button data-tab="now"><span>◷</span>Now</button>
-  <button data-tab="arrivals"><span>⇣</span>Arrivals</button>
-  <button data-tab="guests"><span>☺</span>Guests</button>
-  <button data-tab="jobs"><span>✓</span>Jobs</button>
-  <button data-tab="contacts"><span>☎</span>Contacts</button>
+  <button data-tab="now"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Now</button>
+  <button data-tab="arrivals"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="14" rx="3"/><path d="M5 10h14M8.5 13.5h.01M15.5 13.5h.01M8 17l-2 4M16 17l2 4"/></svg>Arrivals</button>
+  <button data-tab="guests"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.3c2 .8 3.5 2.6 3.5 5.7"/></svg>Guests</button>
+  <button data-tab="jobs"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 6h10M10 12h10M10 18h10M3.5 6l1.5 1.5L7.5 5M3.5 12l1.5 1.5L7.5 11M3.5 18l1.5 1.5L7.5 17"/></svg>Jobs</button>
+  <button data-tab="contacts"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h4l2 5-2.5 1.5a11 11 0 0 0 6 6L16 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 5a2 2 0 0 1 2-2z"/></svg>Contacts</button>
 </nav>
 
 <script>
@@ -231,7 +301,7 @@ function personCall(name) {
 function roomText(g) {
   if (!g._room) return g.Room ? `Room ${g.Room}` : "";
   const r = g._room, hotel = r.Hotel || "hotel not set";
-  return `${hotel} · room ${r["Room number at hotel"] || r.Room}`;
+  return `${hotel}, room ${r["Room number at hotel"] || r.Room}`;
 }
 function guestMessage(g) {
   const first = g.Name.split(" ")[0];
@@ -262,10 +332,7 @@ const state = { tab: (views => views.includes(params.get("tab")) ? params.get("t
 const views = {
   now() {
     const now = new Date(), mins = now.getHours() * 60 + now.getMinutes(), today = dayKey(now);
-    const muhurat = new Date(YEAR, 10, 26, 9, 15);
-    const days = Math.ceil((muhurat - now) / 864e5);
     let h = "";
-    if (days > 0) h += `<div class="card"><div class="t">${days} day${days === 1 ? "" : "s"} to the muhurat</div><div class="s">26 Nov, 9:15 AM · Nakshatra Banquet Hall, Kalyan</div></div>`;
 
     const todays = D.run.filter(r => dayKey(r._date) === today);
     if (todays.length) {
@@ -281,15 +348,15 @@ const views = {
     const late = D.jobs.filter(j => j._late).length;
     const unowned = D.jobs.filter(j => !j.Owner && !j._done).length;
     const done = D.jobs.filter(j => j._done).length;
-    const tile = (n, label, go, goodWhenZero = true) =>
-      `<button class="card ${n ? "warn" : goodWhenZero ? "good" : ""}" data-go="${go}"><div class="n">${n}</div><div class="s">${label}</div></button>`;
-    h += `<h2>Needs attention</h2><div class="stat">
+    const tile = (n, label, go) =>
+      `<button class="att ${n ? "bad" : "good"}" data-go="${go}"><span class="n">${n}</span><span class="l">${label}</span></button>`;
+    h += `<h2>Needs attention</h2><div class="attn">
       ${tile(late, "jobs past their deadline", "jobs:late")}
       ${tile(unowned, "jobs with nobody in charge", "jobs:unowned")}
       ${tile(noRoom, "guests without a room", "guests:noroom")}
       ${tile(pickups, "arrivals with no pickup", "arrivals:pickup")}
       ${tile(noTravel, "guests with no travel details", "arrivals:missing")}
-      <div class="card good"><div class="n">${done}/${D.jobs.length}</div><div class="s">jobs done</div></div>
+      <div class="att"><span class="n">${done}/${D.jobs.length}</span><span class="l">jobs done</span></div>
     </div>`;
 
     h += `<h2>Full schedule</h2>`;
@@ -336,9 +403,9 @@ const views = {
       if (k !== last) { h += `<h3>${fmtDay(p.d)}</h3>`; last = k; }
       const need = p.people.some(g => g._needsPickup);
       const pick = out ? "" : p.by ? `<div class="s">Pickup: <b>${esc(p.by)}</b></div>` : need ? `<div class="warn-text">No pickup assigned</div>` : "";
-      h += `<div class="card"><div class="row"><div class="time">${esc(fmtTime(p.t) || "—")}</div><div>
+      h += `<div class="card"><div class="row"><div class="time">${esc(fmtTime(p.t) || "—")}<small>${p.people.length} ${p.people.length === 1 ? "person" : "people"}</small></div><div>
         <div class="t">${p.people.map(g => esc(g.Name)).join(", ")}</div>
-        <div class="s">${esc([p.no, out ? "" : p.at].filter(Boolean).join(" · ") || "Train/flight not set")} · ${p.people.length} ${p.people.length === 1 ? "person" : "people"}</div>
+        <div class="s">${esc(p.no || "Train/flight not set")}${!out && p.at ? " to " + esc(p.at) : ""}</div>
         ${pick}</div></div>
         <div class="actions">${p.by ? personCall(p.by) : ""}${p.people.filter(g => g.Phone).slice(0, 1).map(g => callBtns(g.Phone, g.Name.split(" ")[0])).join("")}</div></div>`;
     }
@@ -360,7 +427,7 @@ const views = {
         byHotel.get(hk).push({ r, names });
       }
       for (const [hotel, rooms] of byHotel) {
-        h += `<h3>${esc(hotel)} · ${rooms.length} rooms</h3>`;
+        h += `<h3>${esc(hotel)}<span class="h-n">${rooms.length} rooms</span></h3>`;
         for (const { r, names } of rooms)
           h += `<div class="card"><div class="row"><div><div class="t">${esc(r["Room number at hotel"] ? "Room " + r["Room number at hotel"] : r.Room)}</div><div class="s">${esc(names.join(", ") || "Empty")}</div></div><span class="pill">${esc(r.Room)}</span></div>${r.Notes ? `<div class="s">${esc(r.Notes)}</div>` : ""}</div>`;
       }
@@ -400,7 +467,7 @@ const views = {
       const slots = D.run.filter(r => key(r["In charge"]) === key(me));
       const picks = D.guests.filter(g => key(g["Pickup by"]) === key(me)).sort((a, b) => (a._arrDate - b._arrDate) || (a._arrTime - b._arrTime));
       if (slots.length) h += `<h2>Your slots on the day</h2>` + slots.map(r => runCard(r)).join("");
-      if (picks.length) h += `<h2>Your pickups</h2>` + picks.map(g => `<div class="card"><div class="row"><div class="time">${esc(fmtTime(g._arrTime) || "—")}</div><div><div class="t">${esc(g.Name)}</div><div class="s">${esc([fmtDay(g._arrDate), g["Train / flight no"], g["Arrives at"]].filter(Boolean).join(" · "))}</div></div></div><div class="actions">${callBtns(g.Phone)}</div></div>`).join("");
+      if (picks.length) h += `<h2>Your pickups</h2>` + picks.map(g => `<div class="card"><div class="row"><div class="time">${esc(fmtTime(g._arrTime) || "—")}</div><div><div class="t">${esc(g.Name)}</div><div class="s">${esc([fmtDay(g._arrDate), g["Train / flight no"], g["Arrives at"]].filter(Boolean).join(", "))}</div></div></div><div class="actions">${callBtns(g.Phone)}</div></div>`).join("");
       h += `<h2>Your jobs</h2>`;
     }
     if (!jobs.length) return h + `<div class="empty">No jobs here.</div>`;
@@ -409,8 +476,8 @@ const views = {
       if (j.Area !== last) { h += `<h3>${esc(j.Area || "Other")}</h3>`; last = j.Area; }
       const status = j._done ? `<span class="pill ok">Done</span>` : /stuck/i.test(j.Status) ? `<span class="pill warn">Stuck</span>` : `<span class="pill">${esc(j.Status || "Not started")}</span>`;
       h += `<div class="card"><div class="row"><div><div class="t">${esc(j.Job)}</div>
-        <div class="s">${[j.When ? esc(j.When) : "", j._due ? `due <span class="${j._late ? "warn-text" : ""}">${esc(fmtDay(j._due))}</span>` : ""].filter(Boolean).join(" · ")}</div>
-        <div class="s">${j.Owner ? "In charge: <b>" + esc(j.Owner) + "</b>" : `<span class="warn-text">Nobody in charge</span>`}${j.Helper ? " · helper " + esc(j.Helper) : ""}</div>
+        <div class="s">${[j.When ? esc(j.When) : "", j._due ? `due <span class="${j._late ? "warn-text" : ""}">${esc(fmtDay(j._due))}</span>` : ""].filter(Boolean).join(", ")}</div>
+        <div class="s">${j.Owner ? "In charge: <b>" + esc(j.Owner) + "</b>" : `<span class="warn-text">Nobody in charge</span>`}${j.Helper ? ", helper " + esc(j.Helper) : ""}</div>
         ${j.Notes ? `<div class="s">${esc(j.Notes)}</div>` : ""}</div>${status}</div>
         ${j.Owner ? `<div class="actions">${personCall(j.Owner)}</div>` : ""}</div>`;
     }
@@ -419,14 +486,14 @@ const views = {
 
   contacts() {
     let h = `<h2>Family and coordinators</h2>`;
-    h += D.contacts.map(c => `<div class="card"><div class="t">${esc(c.Name)}</div><div class="s">${esc([c.Role, c.Side].filter(Boolean).join(" · "))}</div>${c.Phone ? `<div class="actions">${callBtns(c.Phone)}</div>` : `<div class="s warn-text">No phone number in the sheet</div>`}</div>`).join("");
+    h += D.contacts.map(c => `<div class="card"><div class="t">${esc(c.Name)}</div><div class="s">${esc([c.Role, c.Side].filter(Boolean).join(", "))}</div>${c.Phone ? `<div class="actions">${callBtns(c.Phone)}</div>` : `<div class="s warn-text">No phone number in the sheet</div>`}</div>`).join("");
     h += `<h2>Venues and vendors</h2>`;
     h += D.vendors.map(v => {
       const name = v["Vendor name"] || "Not booked yet";
       const booked = yes(v.Booked) ? `<span class="pill ok">Booked</span>` : v["Vendor name"] ? `<span class="pill">${esc(v.Booked || "Not confirmed")}</span>` : `<span class="pill warn">Open</span>`;
       const map = v.Address ? `<a class="btn" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name + ", " + v.Address)}">Map</a>` : "";
       return `<div class="card"><div class="row"><div><div class="t">${esc(v.Category)}: ${esc(name)}</div>
-        <div class="s">${esc([v.For, v["Contact person"], v["Point person"] ? "our side: " + v["Point person"] : ""].filter(Boolean).join(" · "))}</div>
+        <div class="s">${esc([v.For, v["Contact person"], v["Point person"] ? "our side: " + v["Point person"] : ""].filter(Boolean).join(", "))}</div>
         ${v.Address ? `<div class="s">${esc(v.Address)}</div>` : ""}</div>${booked}</div>
         <div class="actions">${callBtns(v.Phone)}${map}</div></div>`;
     }).join("");
@@ -435,24 +502,30 @@ const views = {
 };
 
 function runCard(r, live) {
-  const t = r._start != null ? fmtTime(r._start) + (r._end != null ? "–" + fmtTime(r._end) : " onwards")
-    : r._end != null ? "Until " + fmtTime(r._end) : "All day";
-  return `<div class="card ${live ? "now" : ""}"><div class="row"><div class="time">${esc(fmtTime(r._start) || "—")}</div><div>
-    <div class="t">${esc(r.What)}</div><div class="s">${esc(t)} · ${esc(r.Where || "")}</div>
-    <div class="s">${r["In charge"] ? "In charge: <b>" + esc(r["In charge"]) + "</b>" : `<span class="warn-text">Nobody in charge</span>`}${/suggest/i.test(r.Source) ? " · suggested" : ""}</div>
-    ${r.Notes ? `<div class="s">${esc(r.Notes)}</div>` : ""}</div></div>
-    ${r["In charge"] ? `<div class="actions">${personCall(r["In charge"])}</div>` : ""}</div>`;
+  const until = r._end != null ? "until " + fmtTime(r._end) : "";
+  const where = [r.Where, until].filter(Boolean).join(", ");
+  return `<div class="ev${live ? " live" : ""}"><div class="time">${esc(fmtTime(r._start) || "All day")}</div><div class="body">
+    <div class="t">${esc(r.What)}</div>${where ? `<div class="s">${esc(where[0].toUpperCase() + where.slice(1))}</div>` : ""}
+    <div class="s">${r["In charge"] ? "In charge: <b>" + esc(r["In charge"]) + "</b>" : `<span class="warn-text">Nobody in charge</span>`}${/suggest/i.test(r.Source) ? " (suggested)" : ""}</div>
+    ${r.Notes ? `<div class="s">${esc(r.Notes)}</div>` : ""}
+    ${r["In charge"] ? `<div class="actions">${personCall(r["In charge"])}</div>` : ""}</div></div>`;
 }
 
 // ------------------------------------------------------------------ render
 const view = document.getElementById("view"), nav = document.getElementById("nav"), sub = document.getElementById("sub");
+function countdown() {
+  const days = Math.ceil((new Date(YEAR, 10, 26, 9, 15) - new Date()) / 864e5);
+  document.getElementById("count").textContent = days > 0 ? `${days} day${days === 1 ? "" : "s"} to the muhurat, 26 Nov at 9:15 AM` : "";
+}
+countdown();
 
 function render() {
   if (!D) return;
   nav.hidden = false;
   for (const b of nav.querySelectorAll("button")) b.setAttribute("aria-current", b.dataset.tab === state.tab ? "page" : "false");
   const at = new Date(D.at).toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" });
-  view.innerHTML = views[state.tab]() + `<div class="foot">From the sheet at ${at} · <button id="refresh">Refresh</button></div>`;
+  countdown();
+  view.innerHTML = views[state.tab]() + `<div class="foot">Updated from the sheet at ${at}. <button id="refresh">Refresh</button></div>`;
   const q = document.getElementById("q");
   if (q && state.focusQ) { q.focus(); q.setSelectionRange(q.value.length, q.value.length); }
 }
