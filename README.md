@@ -1,4 +1,4 @@
-# Wedding control room
+# Akanksha & Rishabh: wedding info page
 
 Akanksha & Rishabh, 25–26 Nov 2026 (Kalyan) and 6 Dec 2026 (Bengaluru).
 
