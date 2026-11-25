@@ -152,18 +152,18 @@
 <div class="zari" aria-hidden="true"></div>
 <main id="view"></main>
 <nav id="nav" hidden>
-  <button data-tab="now"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Now</button>
-  <button data-tab="arrivals"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="14" rx="3"/><path d="M5 10h14M8.5 13.5h.01M15.5 13.5h.01M8 17l-2 4M16 17l2 4"/></svg>Arrivals</button>
-  <button data-tab="guests"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.3c2 .8 3.5 2.6 3.5 5.7"/></svg>Guests</button>
-  <button data-tab="jobs"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 6h10M10 12h10M10 18h10M3.5 6l1.5 1.5L7.5 5M3.5 12l1.5 1.5L7.5 11M3.5 18l1.5 1.5L7.5 17"/></svg>Jobs</button>
+  <button data-tab="schedule"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Schedule</button>
+  <button data-tab="rooms"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14M3 14h18M7 14v-3a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v3M3 20h18"/></svg>Rooms</button>
+  <button data-tab="drivers"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 16V11l2-5h10l2 5v5M3 16h18v3H3zM7 19v2M17 19v2M5 11h14"/><circle cx="7.5" cy="13.5" r=".5"/><circle cx="16.5" cy="13.5" r=".5"/></svg>Drivers</button>
   <button data-tab="contacts"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h4l2 5-2.5 1.5a11 11 0 0 0 6 6L16 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 5a2 2 0 0 1 2-2z"/></svg>Contacts</button>
+  <button data-tab="places"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>Places</button>
 </nav>
 
 <script>
 "use strict";
 // ------------------------------------------------------------------ config
-const TABS = ["Guests", "Rooms", "Jobs", "Run sheet", "Contacts", "Vendors"];
-const INVITE_LINK = "https://ayushgodbole17.github.io/rishabh-akanksha/godbole/";
+// The page is information only: schedule, rooms, drivers, contacts and places.
+const TABS = ["Guests", "Rooms", "Run sheet", "Contacts", "Vendors"];
 const YEAR = 2026;
 const store = {
   get(k) { try { return localStorage.getItem("wedding." + k); } catch { return null; } },
@@ -236,9 +236,10 @@ const fmtDay = d => d ? d.toLocaleDateString("en-IN", { weekday: "short", day: "
 const fmtTime = m => m == null ? "" : `${(Math.floor(m / 60) % 12) || 12}:${String(m % 60).padStart(2, "0")} ${m < 720 ? "AM" : "PM"}`;
 const key = s => (s || "").toLowerCase().replace(/\s+/g, " ").trim();
 const yes = s => /^y/i.test(s || "");
+const isDriver = c => /taxi|driver/i.test(`${c.Role} ${c.Notes}`);
 
 // ------------------------------------------------------------------ data
-let D = null; // { guests, rooms, jobs, run, contacts, vendors, at }
+let D = null; // { guests, rooms, run, contacts, vendors, at }
 
 async function load() {
   const texts = await Promise.all(TABS.map(async t => {
@@ -248,38 +249,23 @@ async function load() {
     if (/^\s*</.test(txt)) throw new Error("The sheet isn't shared. In Google Sheets: Share → General access → Anyone with the link → Viewer.");
     return txt;
   }));
-  const [guests, rooms, jobs, run, contacts, vendors] = texts.map(t => toObjects(parseCSV(t)));
+  const [guests, rooms, run, contacts, vendors] = texts.map(t => toObjects(parseCSV(t)));
   if (!guests.length || !("Name" in guests[0])) throw new Error('The "Guests" tab is missing or its headings were changed.');
-  const data = { guests, rooms, jobs, run, contacts, vendors, at: Date.now() };
+  const data = { guests, rooms, run, contacts, vendors, at: Date.now() };
   store.set("cache", JSON.stringify(data));
   return data;
 }
 
 function derive(d) {
-  const roomBy = Object.fromEntries(d.rooms.map(r => [key(r.Room), r]));
   const phones = {};
   for (const c of d.contacts) if (c.Phone) phones[key(c.Name)] = c.Phone;
-  for (const v of d.vendors) if (v.Phone) { if (v["Contact person"]) phones[key(v["Contact person"])] = v.Phone; if (v["Vendor name"]) phones[key(v["Vendor name"])] = v.Phone; }
-  for (const g of d.guests) if (g.Phone && !phones[key(g.Name)]) phones[key(g.Name)] = g.Phone;
-  for (const g of d.guests) {
-    g._room = roomBy[key(g.Room)] || null;
-    g._arrDate = parseDate(g["Arrival date"]); g._arrTime = parseTime(g["Arrival time"]);
-    g._depDate = parseDate(g["Departure date"]); g._depTime = parseTime(g["Departure time"]);
-    g._needsPickup = yes(g["Pickup needed"]) && !g["Pickup by"];
-  }
+  for (const v of d.vendors || []) if (v.Phone) { if (v["Contact person"]) phones[key(v["Contact person"])] = v.Phone; if (v["Vendor name"]) phones[key(v["Vendor name"])] = v.Phone; }
   for (const r of d.run) {
     r._date = parseDate(r.Date); r._start = parseTime(r.Start); r._end = parseTime(r.End);
   }
   d.run.sort((a, b) => (a._date - b._date) || ((a._start ?? -1) - (b._start ?? -1)));
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  for (const j of d.jobs) {
-    j._due = parseDate(j["Suggested deadline"] || j.Deadline);
-    j._done = /^done/i.test(j.Status);
-    j._late = !j._done && j._due && j._due < today;
-  }
+  d.vendors = d.vendors || [];
   d.phones = phones;
-  d.people = [...new Set([...d.jobs.flatMap(j => [j.Owner, j.Helper]), ...d.run.map(r => r["In charge"]),
-    ...d.guests.map(g => g["Pickup by"])].filter(Boolean).map(s => s.trim()))].sort();
   return d;
 }
 
@@ -296,69 +282,34 @@ function callBtns(phone, label) {
 }
 function personCall(name) {
   const p = D.phones[key(name)];
-  return p ? callBtns(p, name.split(" ")[0]) : "";
+  return p ? callBtns(p, name.replace(/\s*\(.*\)\s*/g, "").split(" ")[0]) : "";
 }
-function roomText(g) {
-  if (!g._room) return g.Room ? `Room ${g.Room}` : "";
-  const r = g._room, hotel = r.Hotel || "hotel not set";
-  return `${hotel}, room ${r["Room number at hotel"] || r.Room}`;
-}
-function guestMessage(g) {
-  const first = g.Name.split(" ")[0];
-  const lines = [`Namaskar ${first}! Your details for Akanksha & Rishabh's wedding in Kalyan:`];
-  if (g._room) {
-    const r = g._room;
-    lines.push(`Stay: ${r.Hotel || "hotel to be confirmed"}${r["Room number at hotel"] ? ", room " + r["Room number at hotel"] : ""}${r["Check-in"] ? ", check-in " + r["Check-in"] : ""}.`);
-  }
-  if (g._arrDate) {
-    let s = `Arrival: ${fmtDay(g._arrDate)}${g._arrTime != null ? " " + fmtTime(g._arrTime) : ""}${g["Train / flight no"] ? ", " + g["Train / flight no"] : ""}.`;
-    if (g["Pickup by"]) {
-      const p = D.phones[key(g["Pickup by"])];
-      s += ` ${g["Pickup by"]} will pick you up${g["Arrives at"] ? " at " + g["Arrives at"] : ""}${p ? " (" + p + ")" : ""}.`;
-    }
-    lines.push(s);
-  }
-  lines.push(`Full schedule and venues: ${INVITE_LINK}`);
-  return lines.join("\n");
+function mapBtn(name, address) {
+  if (!address) return "";
+  return `<a class="btn" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((name ? name + ", " : "") + address)}">Map</a>`;
 }
 function chips(name, options, current) {
   return `<div class="chips">${options.map(([v, label]) =>
     `<button class="chip" data-chip="${name}" data-v="${v}" aria-pressed="${v === current}">${esc(label)}</button>`).join("")}</div>`;
 }
+const hasNumber = s => /\d/.test(s || "");
 
 // ------------------------------------------------------------------ views
-const state = { tab: (views => views.includes(params.get("tab")) ? params.get("tab") : null)(["now", "arrivals", "guests", "jobs", "contacts"]) || store.get("tab") || "now", arr: "in", gview: "people", gfilter: "all", q: "", me: store.get("me") || "" };
+const TAB_NAMES = ["schedule", "rooms", "drivers", "contacts", "places"];
+const pickTab = t => TAB_NAMES.includes(t) ? t : t === "now" ? "schedule" : t === "guests" ? "rooms" : null;
+const state = { tab: pickTab(params.get("tab")) || pickTab(store.get("tab")) || "schedule", q: "" };
 
 const views = {
-  now() {
+  schedule() {
     const now = new Date(), mins = now.getHours() * 60 + now.getMinutes(), today = dayKey(now);
     let h = "";
-
     const todays = D.run.filter(r => dayKey(r._date) === today);
     if (todays.length) {
       const live = todays.filter(r => r._start != null && r._start <= mins && mins < (r._end ?? r._start + 60));
       const next = todays.filter(r => r._start != null && r._start > mins).slice(0, 3);
-      h += `<h2>Happening now</h2>` + (live.length ? live.map(r => runCard(r, true)).join("") : `<div class="empty">Nothing scheduled right now.</div>`);
-      h += `<h2>Up next today</h2>` + (next.length ? next.map(r => runCard(r)).join("") : `<div class="empty">Nothing more today.</div>`);
+      if (live.length) h += `<h2>Happening now</h2>` + live.map(r => runCard(r, true)).join("");
+      if (next.length) h += `<h2>Up next today</h2>` + next.map(r => runCard(r)).join("");
     }
-
-    const noRoom = D.guests.filter(g => !g._room && !/own stay|day visit/i.test(g.Notes)).length;
-    const pickups = D.guests.filter(g => g._needsPickup).length;
-    const noTravel = D.guests.filter(g => !g._arrDate && !/day visit|own/i.test(g.Notes)).length;
-    const late = D.jobs.filter(j => j._late).length;
-    const unowned = D.jobs.filter(j => !j.Owner && !j._done).length;
-    const done = D.jobs.filter(j => j._done).length;
-    const tile = (n, label, go) =>
-      `<button class="att ${n ? "bad" : "good"}" data-go="${go}"><span class="n">${n}</span><span class="l">${label}</span></button>`;
-    h += `<h2>Needs attention</h2><div class="attn">
-      ${tile(late, "jobs past their deadline", "jobs:late")}
-      ${tile(unowned, "jobs with nobody in charge", "jobs:unowned")}
-      ${tile(noRoom, "guests without a room", "guests:noroom")}
-      ${tile(pickups, "arrivals with no pickup", "arrivals:pickup")}
-      ${tile(noTravel, "guests with no travel details", "arrivals:missing")}
-      <div class="att"><span class="n">${done}/${D.jobs.length}</span><span class="l">jobs done</span></div>
-    </div>`;
-
     h += `<h2>Full schedule</h2>`;
     let last = null;
     for (const r of D.run) {
@@ -369,134 +320,69 @@ const views = {
     return h;
   },
 
-  arrivals() {
-    const f = state.arr;
-    let h = chips("arr", [["in", "Arrivals"], ["out", "Departures"], ["pickup", "No pickup yet"], ["missing", "No details"]], f);
-    if (f === "missing") {
-      const list = D.guests.filter(g => !g._arrDate).sort((a, b) => a["List in old sheet"].localeCompare(b["List in old sheet"]) || a.Name.localeCompare(b.Name));
-      h += `<p class="s">${list.length} people have no arrival date yet. Fill in the Guests tab of the sheet.</p>`;
-      let last = null;
-      for (const g of list) {
-        const grp = g["List in old sheet"] || "Other";
-        if (grp !== last) { h += `<h3>${esc(grp)}</h3>`; last = grp; }
-        h += `<div class="card"><div class="row"><div><div class="t">${esc(g.Name)}</div><div class="s">${esc([g["Travel mode"], g["Coming from"]].filter(Boolean).join(" from ") || "Travel not known")}</div></div></div>${g.Phone ? `<div class="actions">${callBtns(g.Phone)}</div>` : ""}</div>`;
-      }
-      return h;
-    }
-    const out = f === "out";
-    let list = D.guests.filter(g => out ? g._depDate : g._arrDate);
-    if (f === "pickup") list = list.filter(g => g._needsPickup);
-    // people on the same train/flight at the same time travel as one party
-    const parties = new Map();
-    for (const g of list) {
-      const d = out ? g._depDate : g._arrDate, t = out ? g._depTime : g._arrTime;
-      const no = out ? g["Departure train / flight"] : g["Train / flight no"];
-      const k = [dayKey(d), t, key(no), out ? "" : key(g["Pickup by"])].join("|");
-      if (!parties.has(k)) parties.set(k, { d, t, no, at: g["Arrives at"], by: g["Pickup by"], people: [] });
-      parties.get(k).people.push(g);
-    }
-    const sorted = [...parties.values()].sort((a, b) => (a.d - b.d) || ((a.t ?? 9999) - (b.t ?? 9999)));
-    if (!sorted.length) return h + `<div class="empty">${f === "pickup" ? "Every arrival that needs a pickup has someone assigned." : "No dates filled in yet. Add them in the Guests tab."}</div>`;
-    let last = null;
-    for (const p of sorted) {
-      const k = dayKey(p.d);
-      if (k !== last) { h += `<h3>${fmtDay(p.d)}</h3>`; last = k; }
-      const need = p.people.some(g => g._needsPickup);
-      const pick = out ? "" : p.by ? `<div class="s">Pickup: <b>${esc(p.by)}</b></div>` : need ? `<div class="warn-text">No pickup assigned</div>` : "";
-      h += `<div class="card"><div class="row"><div class="time">${esc(fmtTime(p.t) || "—")}<small>${p.people.length} ${p.people.length === 1 ? "person" : "people"}</small></div><div>
-        <div class="t">${p.people.map(g => esc(g.Name)).join(", ")}</div>
-        <div class="s">${esc(p.no || "Train/flight not set")}${!out && p.at ? " to " + esc(p.at) : ""}</div>
-        ${pick}</div></div>
-        <div class="actions">${p.by ? personCall(p.by) : ""}${p.people.filter(g => g.Phone).slice(0, 1).map(g => callBtns(g.Phone, g.Name.split(" ")[0])).join("")}</div></div>`;
-    }
-    return h;
-  },
-
-  guests() {
-    let h = chips("gview", [["people", "People"], ["rooms", "Rooms"]], state.gview);
-    h += `<input type="search" id="q" placeholder="Search a name, room or hotel" value="${esc(state.q)}" autocomplete="off">`;
+  rooms() {
+    let h = `<input type="search" id="q" placeholder="Search your name, room or hotel" value="${esc(state.q)}" autocomplete="off">`;
     const q = key(state.q);
-    if (state.gview === "rooms") {
-      const byHotel = new Map();
-      for (const r of D.rooms) {
-        const people = D.guests.filter(g => key(g.Room) === key(r.Room));
-        const names = people.length ? people.map(g => g.Name) : (r.People || "").split(",").map(s => s.trim()).filter(Boolean);
-        if (q && !key([r.Room, r.Hotel, r["Room number at hotel"], ...names].join(" ")).includes(q)) continue;
-        const hk = r.Hotel || "Hotel not set";
-        if (!byHotel.has(hk)) byHotel.set(hk, []);
-        byHotel.get(hk).push({ r, names });
-      }
-      for (const [hotel, rooms] of byHotel) {
-        h += `<h3>${esc(hotel)}<span class="h-n">${rooms.length} rooms</span></h3>`;
-        for (const { r, names } of rooms)
-          h += `<div class="card"><div class="row"><div><div class="t">${esc(r["Room number at hotel"] ? "Room " + r["Room number at hotel"] : r.Room)}</div><div class="s">${esc(names.join(", ") || "Empty")}</div></div><span class="pill">${esc(r.Room)}</span></div>${r.Notes ? `<div class="s">${esc(r.Notes)}</div>` : ""}</div>`;
-      }
-      return h + (byHotel.size ? "" : `<div class="empty">No rooms match.</div>`);
+    const hotels = new Map();
+    for (const r of D.rooms) {
+      const people = D.guests.filter(g => key(g.Room) === key(r.Room)).map(g => g.Name);
+      const raw = people.length ? people : (r.People || "").split(",").map(s => s.trim()).filter(Boolean);
+      const counts = new Map(); for (const n of raw) counts.set(n, (counts.get(n) || 0) + 1);
+      const names = [...counts].map(([n, c]) => c > 1 ? `${n} ×${c}` : n);
+      if (!names.length && !q) continue; // skip empty rooms
+      if (q && !key([r.Hotel, r["Room number at hotel"], ...names].join(" ")).includes(q)) continue;
+      const hk = r.Hotel || "Hotel not set";
+      if (!hotels.has(hk)) hotels.set(hk, []);
+      hotels.get(hk).push({ r, names });
     }
-    h += chips("gfilter", [["all", `All (${D.guests.length})`], ["noroom", "No room"], ["notlisted", "Not on invite list"], ["pickup", "Needs pickup"]], state.gfilter);
-    let list = D.guests;
-    if (state.gfilter === "noroom") list = list.filter(g => !g._room);
-    if (state.gfilter === "notlisted") list = list.filter(g => /not on invite/i.test(g["List in old sheet"]));
-    if (state.gfilter === "pickup") list = list.filter(g => g._needsPickup);
-    if (q) list = list.filter(g => key([g.Name, g.Room, g._room?.Hotel, g["Coming from"]].join(" ")).includes(q));
-    list = [...list].sort((a, b) => a.Name.localeCompare(b.Name));
-    h += `<p class="s">${list.length} shown</p>`;
-    for (const g of list.slice(0, 200)) {
-      const travel = g._arrDate ? `Arrives ${fmtDay(g._arrDate)} ${fmtTime(g._arrTime)} ${g["Train / flight no"] || ""}` : [g["Travel mode"], g["Coming from"]].filter(Boolean).join(" from ");
-      h += `<div class="card"><div class="row"><div><div class="t">${esc(g.Name)}</div>
-        <div class="s">${roomText(g) ? esc(roomText(g)) : `<span class="warn-text">No room</span>`}</div>
-        ${travel ? `<div class="s">${esc(travel)}</div>` : ""}
-        ${g["Pickup by"] ? `<div class="s">Pickup: ${esc(g["Pickup by"])}</div>` : g._needsPickup ? `<div class="warn-text">Needs pickup</div>` : ""}
-        ${g.Notes ? `<div class="s">${esc(g.Notes)}</div>` : ""}</div>
-        ${g.Room ? `<span class="pill">${esc(g.Room)}</span>` : ""}</div>
-        <div class="actions">${callBtns(g.Phone)}<a class="btn" target="_blank" rel="noopener" href="https://wa.me/${digits(g.Phone)}?text=${encodeURIComponent(guestMessage(g))}">Send their details</a></div></div>`;
+    for (const [hotel, rooms] of hotels) {
+      const v = D.vendors.find(v => key(v["Vendor name"]) === key(hotel));
+      h += `<h3>${esc(hotel)}<span class="h-n">${rooms.length} rooms</span></h3>`;
+      if (v) {
+        const note = v.Notes ? `<div class="s">${esc(v.Notes)}</div>` : "";
+        h += `${v.Address ? `<div class="s">${esc(v.Address)}</div>` : ""}${note}<div class="actions">${mapBtn(hotel, v.Address)}${v["Point person"] ? personCall(v["Point person"]) : ""}</div>`;
+      }
+      for (const { r, names } of rooms) {
+        const no = r["Room number at hotel"];
+        h += `<div class="card"><div class="t">${hasNumber(no) ? "Room " + esc(no) : "Room number to come"}</div><div class="s">${esc(names.join(", ") || "Empty")}</div></div>`;
+      }
     }
-    return h;
+    return h + (hotels.size ? "" : `<div class="empty">No rooms match.</div>`);
   },
 
-  jobs() {
-    const opts = [["", "Everyone"], ["late", "Past deadline"], ["unowned", "Nobody in charge"], ...D.people.map(p => [p, p])];
-    let h = `<label class="s" for="me">Show jobs for</label><select id="me">${opts.map(([v, l]) => `<option value="${esc(v)}" ${v === state.me ? "selected" : ""}>${esc(l)}</option>`).join("")}</select>`;
-    const me = state.me, person = me && me !== "late" && me !== "unowned";
-    let jobs = D.jobs;
-    if (me === "late") jobs = jobs.filter(j => j._late);
-    else if (me === "unowned") jobs = jobs.filter(j => !j.Owner && !j._done);
-    else if (person) jobs = jobs.filter(j => key(j.Owner) === key(me) || key(j.Helper) === key(me));
-
-    if (person) {
-      const slots = D.run.filter(r => key(r["In charge"]) === key(me));
-      const picks = D.guests.filter(g => key(g["Pickup by"]) === key(me)).sort((a, b) => (a._arrDate - b._arrDate) || (a._arrTime - b._arrTime));
-      if (slots.length) h += `<h2>Your slots on the day</h2>` + slots.map(r => runCard(r)).join("");
-      if (picks.length) h += `<h2>Your pickups</h2>` + picks.map(g => `<div class="card"><div class="row"><div class="time">${esc(fmtTime(g._arrTime) || "—")}</div><div><div class="t">${esc(g.Name)}</div><div class="s">${esc([fmtDay(g._arrDate), g["Train / flight no"], g["Arrives at"]].filter(Boolean).join(", "))}</div></div></div><div class="actions">${callBtns(g.Phone)}</div></div>`).join("");
-      h += `<h2>Your jobs</h2>`;
-    }
-    if (!jobs.length) return h + `<div class="empty">No jobs here.</div>`;
-    let last = null;
-    for (const j of jobs) {
-      if (j.Area !== last) { h += `<h3>${esc(j.Area || "Other")}</h3>`; last = j.Area; }
-      const status = j._done ? `<span class="pill ok">Done</span>` : /stuck/i.test(j.Status) ? `<span class="pill warn">Stuck</span>` : `<span class="pill">${esc(j.Status || "Not started")}</span>`;
-      h += `<div class="card"><div class="row"><div><div class="t">${esc(j.Job)}</div>
-        <div class="s">${[j.When ? esc(j.When) : "", j._due ? `due <span class="${j._late ? "warn-text" : ""}">${esc(fmtDay(j._due))}</span>` : ""].filter(Boolean).join(", ")}</div>
-        <div class="s">${j.Owner ? "In charge: <b>" + esc(j.Owner) + "</b>" : `<span class="warn-text">Nobody in charge</span>`}${j.Helper ? ", helper " + esc(j.Helper) : ""}</div>
-        ${j.Notes ? `<div class="s">${esc(j.Notes)}</div>` : ""}</div>${status}</div>
-        ${j.Owner ? `<div class="actions">${personCall(j.Owner)}</div>` : ""}</div>`;
+  drivers() {
+    const list = D.contacts.filter(isDriver);
+    if (!list.length) return `<div class="empty">No drivers in the sheet yet.</div>`;
+    let h = `<h2>Taxis</h2>`;
+    for (const c of list) {
+      const name = c.Name.replace(/\s*\((taxi|driver)\)\s*/i, "");
+      const car = (c.Role || "").replace(/^taxi driver\s*[-–:]?\s*/i, "");
+      h += `<div class="card"><div class="row"><div><div class="t">${esc(name)}</div>${car ? `<div class="s">${esc(car)}</div>` : ""}</div></div>${c.Phone ? `<div class="actions">${callBtns(c.Phone)}</div>` : ""}</div>`;
     }
     return h;
   },
 
   contacts() {
+    const list = D.contacts.filter(c => !isDriver(c));
     let h = `<h2>Family and coordinators</h2>`;
-    h += D.contacts.map(c => `<div class="card"><div class="t">${esc(c.Name)}</div><div class="s">${esc([c.Role, c.Side].filter(Boolean).join(", "))}</div>${c.Phone ? `<div class="actions">${callBtns(c.Phone)}</div>` : `<div class="s warn-text">No phone number in the sheet</div>`}</div>`).join("");
-    h += `<h2>Venues and vendors</h2>`;
-    h += D.vendors.map(v => {
-      const name = v["Vendor name"] || "Not booked yet";
-      const booked = yes(v.Booked) ? `<span class="pill ok">Booked</span>` : v["Vendor name"] ? `<span class="pill">${esc(v.Booked || "Not confirmed")}</span>` : `<span class="pill warn">Open</span>`;
-      const map = v.Address ? `<a class="btn" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name + ", " + v.Address)}">Map</a>` : "";
-      return `<div class="card"><div class="row"><div><div class="t">${esc(v.Category)}: ${esc(name)}</div>
-        <div class="s">${esc([v.For, v["Contact person"], v["Point person"] ? "our side: " + v["Point person"] : ""].filter(Boolean).join(", "))}</div>
-        ${v.Address ? `<div class="s">${esc(v.Address)}</div>` : ""}</div>${booked}</div>
-        <div class="actions">${callBtns(v.Phone)}${map}</div></div>`;
-    }).join("");
+    h += list.map(c => `<div class="card"><div class="t">${esc(c.Name)}</div><div class="s">${esc(c.Role || "")}</div>${c.Phone ? `<div class="actions">${callBtns(c.Phone)}</div>` : ""}</div>`).join("");
+    return h;
+  },
+
+  places() {
+    const list = D.vendors.filter(v => v["Vendor name"] && v.Address);
+    const order = c => /venue/i.test(c) ? 0 : /hotel/i.test(c) ? 1 : 2;
+    list.sort((a, b) => order(a.Category) - order(b.Category));
+    if (!list.length) return `<div class="empty">No places in the sheet yet.</div>`;
+    let h = "", last = null;
+    for (const v of list) {
+      const grp = /venue/i.test(v.Category) ? "Venues" : /hotel/i.test(v.Category) ? "Hotels" : "Other";
+      if (grp !== last) { h += `<h2>${grp}</h2>`; last = grp; }
+      h += `<div class="card"><div class="t">${esc(v["Vendor name"])}</div>
+        <div class="s">${esc(v.For || "")}</div>
+        <div class="s">${esc(v.Address)}</div>
+        <div class="actions">${mapBtn(v["Vendor name"], v.Address)}${callBtns(v.Phone)}</div></div>`;
+    }
     return h;
   },
 };
@@ -506,7 +392,7 @@ function runCard(r, live) {
   const where = [r.Where, until].filter(Boolean).join(", ");
   return `<div class="ev${live ? " live" : ""}"><div class="time">${esc(fmtTime(r._start) || "All day")}</div><div class="body">
     <div class="t">${esc(r.What)}</div>${where ? `<div class="s">${esc(where[0].toUpperCase() + where.slice(1))}</div>` : ""}
-    <div class="s">${r["In charge"] ? "In charge: <b>" + esc(r["In charge"]) + "</b>" : `<span class="warn-text">Nobody in charge</span>`}${/suggest/i.test(r.Source) ? " (suggested)" : ""}</div>
+    ${r["In charge"] ? `<div class="s">In charge: <b>${esc(r["In charge"])}</b></div>` : ""}
     ${r.Notes ? `<div class="s">${esc(r.Notes)}</div>` : ""}
     ${r["In charge"] ? `<div class="actions">${personCall(r["In charge"])}</div>` : ""}</div></div>`;
 }
@@ -537,32 +423,20 @@ nav.addEventListener("click", e => {
 view.addEventListener("click", e => {
   const c = e.target.closest("[data-chip]");
   if (c) { state[c.dataset.chip] = c.dataset.v; state.focusQ = false; render(); return; }
-  const g = e.target.closest("[data-go]");
-  if (g) {
-    const [tab, f] = g.dataset.go.split(":");
-    state.tab = tab;
-    if (tab === "jobs") state.me = f;
-    if (tab === "guests") { state.gview = "people"; state.gfilter = f; }
-    if (tab === "arrivals") state.arr = f;
-    render(); scrollTo(0, 0); return;
-  }
   if (e.target.id === "refresh") refresh();
 });
 view.addEventListener("input", e => {
   if (e.target.id === "q") { state.q = e.target.value; state.focusQ = true; render(); }
 });
-view.addEventListener("change", e => {
-  if (e.target.id === "me") { state.me = e.target.value; store.set("me", state.me); render(); }
-});
 
 async function refresh() {
   try {
     D = derive(await load());
-    sub.textContent = "Wedding control room";
+    sub.textContent = "Kalyan, 25–26 November";
     render();
   } catch (err) {
     if (!D) {
-      try { const c = JSON.parse(store.get("cache") || "null"); if (c) { D = derive(c); render(); } } catch {}
+      try { const c = JSON.parse(store.get("cache") || "null"); if (c && c.rooms) { D = derive(c); render(); } } catch {}
     }
     sub.textContent = D ? "Offline: showing the last saved copy" : "Couldn't load the sheet";
     if (!D) view.innerHTML = `<div class="card setup"><p class="warn-text">${esc(err.message)}</p><p>Check your internet and try again.</p><button class="btn primary" id="refresh">Try again</button></div>`;
